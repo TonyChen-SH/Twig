@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of Twig.
+ * This file is part of Twig.  过滤器
  *
  * (c) Fabien Potencier
  *
@@ -23,35 +23,36 @@ class Twig_Filter
     private $name;
     private $callable;
     private $options;
-    private $arguments = array();
+    private $arguments = [];
 
     /**
      * Creates a template filter.
      *
-     * @param string        $name     Name of this filter
+     * @param string        $name Name of this filter
      * @param callable|null $callable A callable implementing the filter. If null, you need to overwrite the "node_class" option to customize compilation.
-     * @param array         $options  Options array
+     * @param array         $options Options array
      */
-    public function __construct(string $name, $callable = null, array $options = array())
+    public function __construct(string $name, $callable = null, array $options = [])
     {
-        if (__CLASS__ !== get_class($this)) {
-            @trigger_error('Overriding '.__CLASS__.' is deprecated since version 2.4.0 and the class will be final in 3.0.', E_USER_DEPRECATED);
+        if (__CLASS__ !== get_class($this))
+        {
+            @trigger_error('Overriding ' . __CLASS__ . ' is deprecated since version 2.4.0 and the class will be final in 3.0.', E_USER_DEPRECATED);
         }
 
-        $this->name = $name;
+        $this->name     = $name;
         $this->callable = $callable;
-        $this->options = array_merge(array(
+        $this->options  = array_merge([
             'needs_environment' => false,
-            'needs_context' => false,
-            'is_variadic' => false,
-            'is_safe' => null,
-            'is_safe_callback' => null,
-            'pre_escape' => null,
-            'preserves_safety' => null,
-            'node_class' => 'Twig_Node_Expression_Filter',
-            'deprecated' => false,
-            'alternative' => null,
-        ), $options);
+            'needs_context'     => false,
+            'is_variadic'       => false,
+            'is_safe'           => null,
+            'is_safe_callback'  => null,
+            'pre_escape'        => null,
+            'preserves_safety'  => null,
+            'node_class'        => 'Twig_Node_Expression_Filter',
+            'deprecated'        => false,
+            'alternative'       => null,
+        ], $options);
     }
 
     public function getName()
@@ -96,11 +97,13 @@ class Twig_Filter
 
     public function getSafe(Twig_Node $filterArgs)
     {
-        if (null !== $this->options['is_safe']) {
+        if (null !== $this->options['is_safe'])
+        {
             return $this->options['is_safe'];
         }
 
-        if (null !== $this->options['is_safe_callback']) {
+        if (null !== $this->options['is_safe_callback'])
+        {
             return $this->options['is_safe_callback']($filterArgs);
         }
     }
@@ -122,7 +125,7 @@ class Twig_Filter
 
     public function isDeprecated()
     {
-        return (bool) $this->options['deprecated'];
+        return (bool)$this->options['deprecated'];
     }
 
     public function getDeprecatedVersion()

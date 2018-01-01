@@ -17,6 +17,7 @@
 interface Twig_ExtensionInterface
 {
     /**
+     * 获取语法分析器
      * Returns the token parser instances to add to the existing list.
      *
      * @return Twig_TokenParserInterface[]
@@ -24,6 +25,7 @@ interface Twig_ExtensionInterface
     public function getTokenParsers();
 
     /**
+     * 获取节点访问器
      * Returns the node visitor instances to add to the existing list.
      *
      * @return Twig_NodeVisitorInterface[]
@@ -31,6 +33,7 @@ interface Twig_ExtensionInterface
     public function getNodeVisitors();
 
     /**
+     * 获取过滤器对象
      * Returns a list of filters to add to the existing list.
      *
      * @return Twig_Filter[]
@@ -38,6 +41,7 @@ interface Twig_ExtensionInterface
     public function getFilters();
 
     /**
+     * 获取测试函数
      * Returns a list of tests to add to the existing list.
      *
      * @return Twig_Test[]
@@ -45,6 +49,7 @@ interface Twig_ExtensionInterface
     public function getTests();
 
     /**
+     * 获取模板函数
      * Returns a list of functions to add to the existing list.
      *
      * @return Twig_Function[]
@@ -52,6 +57,7 @@ interface Twig_ExtensionInterface
     public function getFunctions();
 
     /**
+     * 获取操作符
      * Returns a list of operators to add to the existing list.
      *
      * @return array<array> First array of unary operators, second array of binary operators

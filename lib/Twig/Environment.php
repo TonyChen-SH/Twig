@@ -16,33 +16,48 @@
  */
 class Twig_Environment
 {
-    const VERSION = '2.4.5-DEV';
-    const VERSION_ID = 20405;
-    const MAJOR_VERSION = 2;
-    const MINOR_VERSION = 4;
+    const VERSION         = '2.4.5-DEV';
+    const VERSION_ID      = 20405;
+    const MAJOR_VERSION   = 2;
+    const MINOR_VERSION   = 4;
     const RELEASE_VERSION = 5;
-    const EXTRA_VERSION = 'DEV';
+    const EXTRA_VERSION   = 'DEV';
 
+    /**
+     * @var string 默认是'UTF-8'
+     */
     private $charset;
+    /**
+     * @var Twig_LoaderInterface
+     */
     private $loader;
+    /**
+     * @var bool
+     */
     private $debug;
+    /**
+     * @var bool
+     */
     private $autoReload;
     private $cache;
     private $lexer;
     private $parser;
     private $compiler;
     private $baseTemplateClass;
-    private $globals = array();
+    private $globals             = [];
     private $resolvedGlobals;
     private $loadedTemplates;
     private $strictVariables;
     private $templateClassPrefix = '__TwigTemplate_';
     private $originalCache;
     private $extensionSet;
-    private $runtimeLoaders = array();
-    private $runtimes = array();
+    private $runtimeLoaders      = [];
+    private $runtimes            = [];
+    /**
+     * @var string
+     */
     private $optionsHash;
-    private $loading = array();
+    private $loading = [];
 
     /**
      * Constructor.
@@ -81,30 +96,33 @@ class Twig_Environment
      * @param Twig_LoaderInterface $loader
      * @param array                $options An array of options
      */
-    public function __construct(Twig_LoaderInterface $loader, $options = array())
+    public function __construct(Twig_LoaderInterface $loader, $options = [])
     {
         $this->setLoader($loader);
 
-        $options = array_merge(array(
-            'debug' => false,
-            'charset' => 'UTF-8',
+        // 合并配置参数
+        $options = array_merge([
+            'debug'               => false,
+            'charset'             => 'UTF-8',
             'base_template_class' => 'Twig_Template',
-            'strict_variables' => false,
-            'autoescape' => 'html',
-            'cache' => false,
-            'auto_reload' => null,
-            'optimizations' => -1,
-        ), $options);
+            'strict_variables'    => false, // 严格模式
+            'autoescape'          => 'html', // 自动过滤成html实体
+            'cache'               => false,
+            'auto_reload'         => null,
+            'optimizations'       => -1,
+        ], $options);
 
-        $this->debug = (bool) $options['debug'];
+        $this->debug = (bool)$options['debug'];
         $this->setCharset($options['charset']);
         $this->baseTemplateClass = $options['base_template_class'];
-        $this->autoReload = null === $options['auto_reload'] ? $this->debug : (bool) $options['auto_reload'];
-        $this->strictVariables = (bool) $options['strict_variables'];
+        $this->autoReload        = null === $options['auto_reload'] ? $this->debug : (bool)$options['auto_reload'];
+        $this->strictVariables   = (bool)$options['strict_variables'];
         $this->setCache($options['cache']);
-        $this->extensionSet = new Twig_ExtensionSet();
 
-        $this->addExtension(new Twig_Extension_Core());
+        // 扩展集合管理器
+        $this->extensionSet = new Twig_ExtensionSet();
+        // 加入扩展
+        $this->addExtension(new Twig_Extension_Core()); // 核心组件
         $this->addExtension(new Twig_Extension_Escaper($options['autoescape']));
         $this->addExtension(new Twig_Extension_Optimizer($options['optimizations']));
     }
@@ -235,15 +253,19 @@ class Twig_Environment
      */
     public function setCache($cache)
     {
-        if (is_string($cache)) {
+        if (is_string($cache))
+        {
             $this->originalCache = $cache;
-            $this->cache = new Twig_Cache_Filesystem($cache);
-        } elseif (false === $cache) {
+            $this->cache         = new Twig_Cache_Filesystem($cache);
+        } else if (false === $cache)
+        {
             $this->originalCache = $cache;
-            $this->cache = new Twig_Cache_Null();
-        } elseif ($cache instanceof Twig_CacheInterface) {
+            $this->cache         = new Twig_Cache_Null();
+        } else if ($cache instanceof Twig_CacheInterface)
+        {
             $this->originalCache = $this->cache = $cache;
-        } else {
+        } else
+        {
             throw new LogicException(sprintf('Cache can only be a string, false, or a Twig_CacheInterface implementation.'));
         }
     }
@@ -260,31 +282,33 @@ class Twig_Environment
      *  * Twig version;
      *  * Options with what environment was created.
      *
-     * @param string   $name  The name for which to calculate the template class name
+     * @param string   $name The name for which to calculate the template class name
      * @param int|null $index The index if it is an embedded template
      *
      * @return string The template class name
+     * @throws Twig_Error_Loader
      */
     public function getTemplateClass($name, $index = null)
     {
-        $key = $this->getLoader()->getCacheKey($name).$this->optionsHash;
+        $key = $this->getLoader()->getCacheKey($name) . $this->optionsHash;
 
-        return $this->templateClassPrefix.hash('sha256', $key).(null === $index ? '' : '_'.$index);
+        return $this->templateClassPrefix . hash('sha256', $key) . (null === $index ? '' : '_' . $index);
     }
 
     /**
      * Renders a template.
      *
-     * @param string $name    The template name
-     * @param array  $context An array of parameters to pass to the template
+     * @param string $name 模板名称,如: index.twig
+     * @param array  $context An array of parameters to pass to the template 渲染到前端的变量，数组形式，如['name'=>'Tony'],前端用的话，就是$name这样用
      *
-     * @return string The rendered template
+     * @return string The rendered template 返回模板渲染好的字符串，一般都是html代码
      *
      * @throws Twig_Error_Loader  When the template cannot be found
      * @throws Twig_Error_Syntax  When an error occurred during compilation
      * @throws Twig_Error_Runtime When an error occurred during rendering
+     * @throws Throwable
      */
-    public function render($name, array $context = array())
+    public function render($name, array $context = [])
     {
         return $this->loadTemplate($name)->render($context);
     }
@@ -292,14 +316,14 @@ class Twig_Environment
     /**
      * Displays a template.
      *
-     * @param string $name    The template name
+     * @param string $name The template name
      * @param array  $context An array of parameters to pass to the template
      *
      * @throws Twig_Error_Loader  When the template cannot be found
      * @throws Twig_Error_Syntax  When an error occurred during compilation
      * @throws Twig_Error_Runtime When an error occurred during rendering
      */
-    public function display($name, array $context = array())
+    public function display($name, array $context = [])
     {
         $this->loadTemplate($name)->display($context);
     }
@@ -317,11 +341,13 @@ class Twig_Environment
      */
     public function load($name)
     {
-        if ($name instanceof Twig_TemplateWrapper) {
+        if ($name instanceof Twig_TemplateWrapper)
+        {
             return $name;
         }
 
-        if ($name instanceof Twig_Template) {
+        if ($name instanceof Twig_Template)
+        {
             return new Twig_TemplateWrapper($this, $name);
         }
 
@@ -329,56 +355,68 @@ class Twig_Environment
     }
 
     /**
-     * Loads a template internal representation.
+     * Loads a template internal representation. 加载模板对象并生成一个继承了Twig_Template的对象
      *
      * This method is for internal use only and should never be called
      * directly.
      *
-     * @param string $name  The template name
+     * @param string $name The template name
      * @param int    $index The index if it is an embedded template
      *
      * @return Twig_Template A template instance representing the given template name
      *
-     * @throws Twig_Error_Loader  When the template cannot be found
+     * @throws Twig_Error
+     * @throws Twig_Error_Loader When the template cannot be found
      * @throws Twig_Error_Runtime When a previously generated cache is corrupted
-     * @throws Twig_Error_Syntax  When an error occurred during compilation
-     *
+     * @throws Twig_Error_Syntax When an error occurred during compilation
      * @internal
      */
     public function loadTemplate($name, $index = null)
     {
         $cls = $mainCls = $this->getTemplateClass($name);
-        if (null !== $index) {
-            $cls .= '_'.$index;
+        if (null !== $index)
+        {
+            $cls .= '_' . $index;
         }
 
-        if (isset($this->loadedTemplates[$cls])) {
+        if (isset($this->loadedTemplates[$cls]))
+        {
             return $this->loadedTemplates[$cls];
         }
 
-        if (!class_exists($cls, false)) {
+        if (!class_exists($cls, false))
+        {
             $key = $this->cache->generateKey($name, $mainCls);
 
-            if (!$this->isAutoReload() || $this->isTemplateFresh($name, $this->cache->getTimestamp($key))) {
+            if (!$this->isAutoReload() || $this->isTemplateFresh($name, $this->cache->getTimestamp($key)))
+            {
                 $this->cache->load($key);
             }
 
-            if (!class_exists($cls, false)) {
+            if (!class_exists($cls, false))
+            {
+                /**
+                 * @var Twig_Source 获取了一个Twig源码对象
+                 */
                 $source = $this->getLoader()->getSourceContext($name);
+
+                // 调用模板编译成php源码
                 $content = $this->compileSource($source);
                 $this->cache->write($key, $content);
                 $this->cache->load($key);
 
-                if (!class_exists($mainCls, false)) {
+                if (!class_exists($mainCls, false))
+                {
                     /* Last line of defense if either $this->bcWriteCacheFile was used,
                      * $this->cache is implemented as a no-op or we have a race condition
                      * where the cache was cleared between the above calls to write to and load from
                      * the cache.
                      */
-                    eval('?>'.$content);
+                    eval('?>' . $content);
                 }
 
-                if (!class_exists($cls, false)) {
+                if (!class_exists($cls, false))
+                {
                     throw new Twig_Error_Runtime(sprintf('Failed to load Twig template "%s", index "%s": cache is corrupted.', $name, $index), -1, $source);
                 }
             }
@@ -387,15 +425,18 @@ class Twig_Environment
         // to be removed in 3.0
         $this->extensionSet->initRuntime($this);
 
-        if (isset($this->loading[$cls])) {
-            throw new Twig_Error_Runtime(sprintf('Circular reference detected for Twig template "%s", path: %s.', $name, implode(' -> ', array_merge($this->loading, array($name)))));
+        if (isset($this->loading[$cls]))
+        {
+            throw new Twig_Error_Runtime(sprintf('Circular reference detected for Twig template "%s", path: %s.', $name, implode(' -> ', array_merge($this->loading, [$name]))));
         }
 
         $this->loading[$cls] = $name;
 
-        try {
+        try
+        {
             $this->loadedTemplates[$cls] = new $cls($this);
-        } finally {
+        } finally
+        {
             unset($this->loading[$cls]);
         }
 
@@ -412,21 +453,24 @@ class Twig_Environment
      * @return Twig_Template A template instance representing the given template name
      *
      * @throws Twig_Error_Loader When the template cannot be found
+     * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax When an error occurred during compilation
      */
     public function createTemplate($template)
     {
         $name = sprintf('__string_template__%s', hash('sha256', $template, false));
 
-        $loader = new Twig_Loader_Chain(array(
-            new Twig_Loader_Array(array($name => $template)),
+        $loader = new Twig_Loader_Chain([
+            new Twig_Loader_Array([$name => $template]),
             $current = $this->getLoader(),
-        ));
+        ]);
 
         $this->setLoader($loader);
-        try {
+        try
+        {
             $template = $this->loadTemplate($name);
-        } finally {
+        } finally
+        {
             $this->setLoader($current);
         }
 
@@ -465,26 +509,33 @@ class Twig_Environment
      */
     public function resolveTemplate($names)
     {
-        if (!is_array($names)) {
-            $names = array($names);
+        if (!is_array($names))
+        {
+            $names = [$names];
         }
 
-        foreach ($names as $name) {
-            if ($name instanceof Twig_Template) {
+        foreach ($names as $name)
+        {
+            if ($name instanceof Twig_Template)
+            {
                 return $name;
             }
 
-            if ($name instanceof Twig_TemplateWrapper) {
+            if ($name instanceof Twig_TemplateWrapper)
+            {
                 return $name;
             }
 
-            try {
+            try
+            {
                 return $this->loadTemplate($name);
-            } catch (Twig_Error_Loader $e) {
+            } catch (Twig_Error_Loader $e)
+            {
             }
         }
 
-        if (1 === count($names)) {
+        if (1 === count($names))
+        {
             throw $e;
         }
 
@@ -497,7 +548,7 @@ class Twig_Environment
     }
 
     /**
-     * Tokenizes a source code.
+     * Tokenizes a source code. 解析源码
      *
      * @return Twig_TokenStream
      *
@@ -505,10 +556,13 @@ class Twig_Environment
      */
     public function tokenize(Twig_Source $source)
     {
-        if (null === $this->lexer) {
+        // 词法分析器？
+        if (null === $this->lexer)
+        {
             $this->lexer = new Twig_Lexer($this);
         }
 
+        // 传入到词法分析器，开始分析源码
         return $this->lexer->tokenize($source);
     }
 
@@ -526,7 +580,8 @@ class Twig_Environment
      */
     public function parse(Twig_TokenStream $stream)
     {
-        if (null === $this->parser) {
+        if (null === $this->parser)
+        {
             $this->parser = new Twig_Parser($this);
         }
 
@@ -545,7 +600,8 @@ class Twig_Environment
      */
     public function compile(Twig_Node $node)
     {
-        if (null === $this->compiler) {
+        if (null === $this->compiler)
+        {
             $this->compiler = new Twig_Compiler($this);
         }
 
@@ -553,20 +609,25 @@ class Twig_Environment
     }
 
     /**
-     * Compiles a template source code.
+     * Compiles a template source code. 把模板编译成php源码
      *
+     * @param Twig_Source $source
      * @return string The compiled PHP source code
      *
+     * @throws Twig_Error
      * @throws Twig_Error_Syntax When there was an error during tokenizing, parsing or compiling
      */
     public function compileSource(Twig_Source $source)
     {
-        try {
+        try
+        {
             return $this->compile($this->parse($this->tokenize($source)));
-        } catch (Twig_Error $e) {
+        } catch (Twig_Error $e)
+        {
             $e->setSourceContext($source);
             throw $e;
-        } catch (Exception $e) {
+        } catch (Exception $e)
+        {
             throw new Twig_Error_Syntax(sprintf('An exception has been thrown during the compilation of a template ("%s").', $e->getMessage()), -1, $source, $e);
         }
     }
@@ -593,7 +654,8 @@ class Twig_Environment
      */
     public function setCharset($charset)
     {
-        if ('UTF8' === $charset = strtoupper($charset)) {
+        if ('UTF8' === $charset = strtoupper($charset))
+        {
             // iconv on Windows requires "UTF-8" instead of "UTF8"
             $charset = 'UTF-8';
         }
@@ -654,12 +716,15 @@ class Twig_Environment
      */
     public function getRuntime($class)
     {
-        if (isset($this->runtimes[$class])) {
+        if (isset($this->runtimes[$class]))
+        {
             return $this->runtimes[$class];
         }
 
-        foreach ($this->runtimeLoaders as $loader) {
-            if (null !== $runtime = $loader->load($class)) {
+        foreach ($this->runtimeLoaders as $loader)
+        {
+            if (null !== $runtime = $loader->load($class))
+            {
                 return $this->runtimes[$class] = $runtime;
             }
         }
@@ -719,8 +784,9 @@ class Twig_Environment
      */
     public function getTags()
     {
-        $tags = array();
-        foreach ($this->getTokenParsers() as $parser) {
+        $tags = [];
+        foreach ($this->getTokenParsers() as $parser)
+        {
             $tags[$parser->getTag()] = $parser;
         }
 
@@ -872,18 +938,21 @@ class Twig_Environment
      * New globals can be added before compiling or rendering a template;
      * but after, you can only update existing globals.
      *
-     * @param string $name  The global name
+     * @param string $name The global name
      * @param mixed  $value The global value
      */
     public function addGlobal($name, $value)
     {
-        if ($this->extensionSet->isInitialized() && !array_key_exists($name, $this->getGlobals())) {
+        if ($this->extensionSet->isInitialized() && !array_key_exists($name, $this->getGlobals()))
+        {
             throw new LogicException(sprintf('Unable to add global "%s" as the runtime or the extensions have already been initialized.', $name));
         }
 
-        if (null !== $this->resolvedGlobals) {
+        if (null !== $this->resolvedGlobals)
+        {
             $this->resolvedGlobals[$name] = $value;
-        } else {
+        } else
+        {
             $this->globals[$name] = $value;
         }
     }
@@ -897,8 +966,10 @@ class Twig_Environment
      */
     public function getGlobals()
     {
-        if ($this->extensionSet->isInitialized()) {
-            if (null === $this->resolvedGlobals) {
+        if ($this->extensionSet->isInitialized())
+        {
+            if (null === $this->resolvedGlobals)
+            {
                 $this->resolvedGlobals = array_merge($this->extensionSet->getGlobals(), $this->globals);
             }
 
@@ -919,8 +990,10 @@ class Twig_Environment
     {
         // we don't use array_merge as the context being generally
         // bigger than globals, this code is faster.
-        foreach ($this->getGlobals() as $key => $value) {
-            if (!array_key_exists($key, $context)) {
+        foreach ($this->getGlobals() as $key => $value)
+        {
+            if (!array_key_exists($key, $context))
+            {
                 $context[$key] = $value;
             }
         }
@@ -954,15 +1027,15 @@ class Twig_Environment
 
     private function updateOptionsHash()
     {
-        $this->optionsHash = implode(':', array(
+        $this->optionsHash = implode(':', [
             $this->extensionSet->getSignature(),
             PHP_MAJOR_VERSION,
             PHP_MINOR_VERSION,
             self::VERSION,
-            (int) $this->debug,
+            (int)$this->debug,
             $this->baseTemplateClass,
-            (int) $this->strictVariables,
-        ));
+            (int)$this->strictVariables,
+        ]);
     }
 }
 

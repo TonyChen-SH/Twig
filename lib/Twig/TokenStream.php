@@ -11,7 +11,7 @@
  */
 
 /**
- * Represents a token stream.
+ * Represents a token stream.  字符流
  *
  * @author Fabien Potencier <fabien@symfony.com>
  */
@@ -45,10 +45,12 @@ final class Twig_TokenStream
      * Sets the pointer to the next token and returns the old one.
      *
      * @return Twig_Token
+     * @throws Twig_Error_Syntax
      */
     public function next()
     {
-        if (!isset($this->tokens[++$this->current])) {
+        if (!isset($this->tokens[++$this->current]))
+        {
             throw new Twig_Error_Syntax('Unexpected end of template.', $this->tokens[$this->current - 1]->getLine(), $this->source);
         }
 
@@ -59,10 +61,12 @@ final class Twig_TokenStream
      * Tests a token, sets the pointer to the next one and returns it or throws a syntax error.
      *
      * @return Twig_Token|null The next token if the condition is true, null otherwise
+     * @throws Twig_Error_Syntax
      */
     public function nextIf($primary, $secondary = null)
     {
-        if ($this->tokens[$this->current]->test($primary, $secondary)) {
+        if ($this->tokens[$this->current]->test($primary, $secondary))
+        {
             return $this->next();
         }
     }
@@ -70,15 +74,20 @@ final class Twig_TokenStream
     /**
      * Tests a token and returns it or throws a syntax error.
      *
+     * @param      $type
+     * @param null $value
+     * @param null $message
      * @return Twig_Token
+     * @throws Twig_Error_Syntax
      */
     public function expect($type, $value = null, $message = null)
     {
         $token = $this->tokens[$this->current];
-        if (!$token->test($type, $value)) {
+        if (!$token->test($type, $value))
+        {
             $line = $token->getLine();
             throw new Twig_Error_Syntax(sprintf('%sUnexpected token "%s" of value "%s" ("%s" expected%s).',
-                $message ? $message.'. ' : '',
+                $message ? $message . '. ' : '',
                 Twig_Token::typeToEnglish($token->getType()), $token->getValue(),
                 Twig_Token::typeToEnglish($type), $value ? sprintf(' with value "%s"', $value) : ''),
                 $line,
@@ -96,10 +105,12 @@ final class Twig_TokenStream
      * @param int $number
      *
      * @return Twig_Token
+     * @throws Twig_Error_Syntax
      */
     public function look($number = 1)
     {
-        if (!isset($this->tokens[$this->current + $number])) {
+        if (!isset($this->tokens[$this->current + $number]))
+        {
             throw new Twig_Error_Syntax('Unexpected end of template.', $this->tokens[$this->current + $number - 1]->getLine(), $this->source);
         }
 
