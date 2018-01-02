@@ -87,6 +87,8 @@ abstract class Twig_Template
      *
      * @return Twig_Template|false The parent template or false if there is no parent
      *
+     * @throws Twig_Error
+     * @throws Twig_Error_Loader
      * @internal
      */
     public function getParent(array $context)

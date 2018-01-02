@@ -319,9 +319,10 @@ class Twig_Environment
      * @param string $name The template name
      * @param array  $context An array of parameters to pass to the template
      *
-     * @throws Twig_Error_Loader  When the template cannot be found
-     * @throws Twig_Error_Syntax  When an error occurred during compilation
+     * @throws Twig_Error
+     * @throws Twig_Error_Loader When the template cannot be found
      * @throws Twig_Error_Runtime When an error occurred during rendering
+     * @throws Twig_Error_Syntax When an error occurred during compilation
      */
     public function display($name, array $context = [])
     {
@@ -373,6 +374,7 @@ class Twig_Environment
      */
     public function loadTemplate($name, $index = null)
     {
+        // 这个加载模板计入了缓存的判断
         $cls = $mainCls = $this->getTemplateClass($name);
         if (null !== $index)
         {
@@ -393,10 +395,11 @@ class Twig_Environment
                 $this->cache->load($key);
             }
 
+            // 缓存文件不存在的话，启动加载模版，并解析
             if (!class_exists($cls, false))
             {
                 /**
-                 * @var Twig_Source 获取了一个Twig源码对象
+                 * @var Twig_Source 从当前加载器中获取一个源码对象
                  */
                 $source = $this->getLoader()->getSourceContext($name);
 

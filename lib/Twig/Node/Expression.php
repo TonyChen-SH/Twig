@@ -1,6 +1,7 @@
 <?php
 
 /*
+ * 表达式基类
  * This file is part of Twig.
  *
  * (c) Fabien Potencier

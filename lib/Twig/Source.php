@@ -10,7 +10,7 @@
  */
 
 /**
- * 没有被编译过的原始模板源码类
+ * 没有被编译过的原始模板源码类(可能是一个Context??????????????)
  * Holds information about a non-compiled Twig template.
  *
  * @author Fabien Potencier <fabien@symfony.com>

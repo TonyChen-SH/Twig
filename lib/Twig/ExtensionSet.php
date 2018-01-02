@@ -1,6 +1,7 @@
 <?php
 
 /*
+ * 集合
  * This file is part of Twig.
  *
  * (c) Fabien Potencier
@@ -64,6 +65,7 @@ final class Twig_ExtensionSet
      * @param string $class The extension class name
      *
      * @return bool Whether the extension is registered or not
+     * @throws ReflectionException
      */
     public function hasExtension($class)
     {
@@ -83,6 +85,7 @@ final class Twig_ExtensionSet
      * @param string $class The extension class name
      *
      * @return Twig_ExtensionInterface A Twig_ExtensionInterface instance
+     * @throws ReflectionException
      * @throws Twig_Error_Runtime
      */
     public function getExtension($class)

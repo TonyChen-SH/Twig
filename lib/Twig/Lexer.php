@@ -11,6 +11,7 @@
  */
 
 /**
+ * 分析模板语法，构建AST语法树？？？？
  * Lexes a template string.
  *
  * @author Fabien Potencier <fabien@symfony.com>

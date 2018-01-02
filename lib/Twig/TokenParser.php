@@ -10,6 +10,7 @@
  */
 
 /**
+ * 字符流解析基类
  * Base class for all token parsers.
  *
  * @author Fabien Potencier <fabien@symfony.com>
