@@ -11,6 +11,7 @@
  */
 
 /**
+ * 代表一个模块节点
  * Represents a module node.
  *
  * Consider this class as being final. If you need to customize the behavior of

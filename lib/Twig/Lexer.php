@@ -11,7 +11,8 @@
  */
 
 /**
- * 分析模板语法，构建AST语法树？？？？
+ * 分析html模板语法，构建AST语法树.. 在这里把Twig_Source变成 Twig_TokenStream
+ *
  * Lexes a template string.
  *
  * @author Fabien Potencier <fabien@symfony.com>
@@ -97,6 +98,7 @@ class Twig_Lexer
         preg_match_all($this->regexes['lex_tokens_start'], $this->code, $matches, PREG_OFFSET_CAPTURE);
         $this->positions = $matches;
 
+        // 一行一行的分析加载进来html代码
         while ($this->cursor < $this->end)
         {
             // dispatch to the lexing functions depending
@@ -244,7 +246,7 @@ class Twig_Lexer
      */
     private function lexExpression()
     {
-        // whitespace
+        // whitespace 空格
         if (preg_match('/\s+/A', $this->code, $match, null, $this->cursor))
         {
             $this->moveCursor($match[0]);
@@ -255,17 +257,17 @@ class Twig_Lexer
             }
         }
 
-        // operators
+        // operators 操作符
         if (preg_match($this->regexes['operator'], $this->code, $match, null, $this->cursor))
         {
             $this->pushToken(Twig_Token::OPERATOR_TYPE, preg_replace('/\s+/', ' ', $match[0]));
             $this->moveCursor($match[0]);
-        } // names
+        } // names 名称?
         else if (preg_match(self::REGEX_NAME, $this->code, $match, null, $this->cursor))
         {
             $this->pushToken(Twig_Token::NAME_TYPE, $match[0]);
             $this->moveCursor($match[0]);
-        } // numbers
+        } // numbers 数量?
         else if (preg_match(self::REGEX_NUMBER, $this->code, $match, null, $this->cursor))
         {
             $number = (float)$match[0];  // floats
@@ -275,7 +277,7 @@ class Twig_Lexer
             }
             $this->pushToken(Twig_Token::NUMBER_TYPE, $number);
             $this->moveCursor($match[0]);
-        } // punctuation
+        } // punctuation 标点符号
         else if (false !== strpos(self::PUNCTUATION, $this->code[$this->cursor]))
         {
             // opening bracket
@@ -299,18 +301,18 @@ class Twig_Lexer
 
             $this->pushToken(Twig_Token::PUNCTUATION_TYPE, $this->code[$this->cursor]);
             ++$this->cursor;
-        } // strings
+        } // strings 字符
         else if (preg_match(self::REGEX_STRING, $this->code, $match, null, $this->cursor))
         {
             $this->pushToken(Twig_Token::STRING_TYPE, stripcslashes(substr($match[0], 1, -1)));
             $this->moveCursor($match[0]);
-        } // opening double quoted string
+        } // opening double quoted string 打开双引号字符串
         else if (preg_match(self::REGEX_DQ_STRING_DELIM, $this->code, $match, null, $this->cursor))
         {
             $this->brackets[] = ['"', $this->lineno];
             $this->pushState(self::STATE_STRING);
             $this->moveCursor($match[0]);
-        } // unlexable
+        } // unlexable 无法解析
         else
         {
             throw new Twig_Error_Syntax(sprintf('Unexpected character "%s".', $this->code[$this->cursor]), $this->lineno, $this->source);

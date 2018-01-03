@@ -10,18 +10,19 @@
  */
 
 /**
+ * 自动源码转换
  * Twig_NodeVisitor_Escaper implements output escaping.
  *
  * @author Fabien Potencier <fabien@symfony.com>
  */
 final class Twig_NodeVisitor_Escaper extends Twig_BaseNodeVisitor
 {
-    private $statusStack = array();
-    private $blocks = array();
+    private $statusStack     = [];
+    private $blocks          = [];
     private $safeAnalysis;
     private $traverser;
     private $defaultStrategy = false;
-    private $safeVars = array();
+    private $safeVars        = [];
 
     public function __construct()
     {
@@ -30,17 +31,22 @@ final class Twig_NodeVisitor_Escaper extends Twig_BaseNodeVisitor
 
     protected function doEnterNode(Twig_Node $node, Twig_Environment $env)
     {
-        if ($node instanceof Twig_Node_Module) {
-            if ($env->hasExtension('Twig_Extension_Escaper') && $defaultStrategy = $env->getExtension('Twig_Extension_Escaper')->getDefaultStrategy($node->getTemplateName())) {
+        if ($node instanceof Twig_Node_Module)
+        {
+            if ($env->hasExtension('Twig_Extension_Escaper') && $defaultStrategy = $env->getExtension('Twig_Extension_Escaper')->getDefaultStrategy($node->getTemplateName()))
+            {
                 $this->defaultStrategy = $defaultStrategy;
             }
-            $this->safeVars = array();
-            $this->blocks = array();
-        } elseif ($node instanceof Twig_Node_AutoEscape) {
+            $this->safeVars = [];
+            $this->blocks   = [];
+        } else if ($node instanceof Twig_Node_AutoEscape)
+        {
             $this->statusStack[] = $node->getAttribute('value');
-        } elseif ($node instanceof Twig_Node_Block) {
+        } else if ($node instanceof Twig_Node_Block)
+        {
             $this->statusStack[] = isset($this->blocks[$node->getAttribute('name')]) ? $this->blocks[$node->getAttribute('name')] : $this->needEscaping($env);
-        } elseif ($node instanceof Twig_Node_Import) {
+        } else if ($node instanceof Twig_Node_Import)
+        {
             $this->safeVars[] = $node->getNode('var')->getAttribute('name');
         }
 
@@ -49,19 +55,24 @@ final class Twig_NodeVisitor_Escaper extends Twig_BaseNodeVisitor
 
     protected function doLeaveNode(Twig_Node $node, Twig_Environment $env)
     {
-        if ($node instanceof Twig_Node_Module) {
+        if ($node instanceof Twig_Node_Module)
+        {
             $this->defaultStrategy = false;
-            $this->safeVars = array();
-            $this->blocks = array();
-        } elseif ($node instanceof Twig_Node_Expression_Filter) {
+            $this->safeVars        = [];
+            $this->blocks          = [];
+        } else if ($node instanceof Twig_Node_Expression_Filter)
+        {
             return $this->preEscapeFilterNode($node, $env);
-        } elseif ($node instanceof Twig_Node_Print) {
+        } else if ($node instanceof Twig_Node_Print)
+        {
             return $this->escapePrintNode($node, $env, $this->needEscaping($env));
         }
 
-        if ($node instanceof Twig_Node_AutoEscape || $node instanceof Twig_Node_Block) {
+        if ($node instanceof Twig_Node_AutoEscape || $node instanceof Twig_Node_Block)
+        {
             array_pop($this->statusStack);
-        } elseif ($node instanceof Twig_Node_BlockReference) {
+        } else if ($node instanceof Twig_Node_BlockReference)
+        {
             $this->blocks[$node->getAttribute('name')] = $this->needEscaping($env);
         }
 
@@ -70,13 +81,15 @@ final class Twig_NodeVisitor_Escaper extends Twig_BaseNodeVisitor
 
     private function escapePrintNode(Twig_Node_Print $node, Twig_Environment $env, $type)
     {
-        if (false === $type) {
+        if (false === $type)
+        {
             return $node;
         }
 
         $expression = $node->getNode('expr');
 
-        if ($this->isSafeFor($type, $expression, $env)) {
+        if ($this->isSafeFor($type, $expression, $env))
+        {
             return $node;
         }
 
@@ -93,12 +106,14 @@ final class Twig_NodeVisitor_Escaper extends Twig_BaseNodeVisitor
         $name = $filter->getNode('filter')->getAttribute('value');
 
         $type = $env->getFilter($name)->getPreEscape();
-        if (null === $type) {
+        if (null === $type)
+        {
             return $filter;
         }
 
         $node = $filter->getNode('node');
-        if ($this->isSafeFor($type, $node, $env)) {
+        if ($this->isSafeFor($type, $node, $env))
+        {
             return $filter;
         }
 
@@ -111,9 +126,11 @@ final class Twig_NodeVisitor_Escaper extends Twig_BaseNodeVisitor
     {
         $safe = $this->safeAnalysis->getSafe($expression);
 
-        if (null === $safe) {
-            if (null === $this->traverser) {
-                $this->traverser = new Twig_NodeTraverser($env, array($this->safeAnalysis));
+        if (null === $safe)
+        {
+            if (null === $this->traverser)
+            {
+                $this->traverser = new Twig_NodeTraverser($env, [$this->safeAnalysis]);
             }
 
             $this->safeAnalysis->setSafeVars($this->safeVars);
@@ -127,7 +144,8 @@ final class Twig_NodeVisitor_Escaper extends Twig_BaseNodeVisitor
 
     private function needEscaping(Twig_Environment $env)
     {
-        if (count($this->statusStack)) {
+        if (count($this->statusStack))
+        {
             return $this->statusStack[count($this->statusStack) - 1];
         }
 
@@ -138,7 +156,7 @@ final class Twig_NodeVisitor_Escaper extends Twig_BaseNodeVisitor
     {
         $line = $node->getTemplateLine();
         $name = new Twig_Node_Expression_Constant('escape', $line);
-        $args = new Twig_Node(array(new Twig_Node_Expression_Constant((string) $type, $line), new Twig_Node_Expression_Constant(null, $line), new Twig_Node_Expression_Constant(true, $line)));
+        $args = new Twig_Node([new Twig_Node_Expression_Constant((string)$type, $line), new Twig_Node_Expression_Constant(null, $line), new Twig_Node_Expression_Constant(true, $line)]);
 
         return new Twig_Node_Expression_Filter($node, $name, $args, $line);
     }

@@ -122,6 +122,7 @@ class Twig_Environment
         // 扩展集合管理器
         $this->extensionSet = new Twig_ExtensionSet();
         // 加入扩展
+        // 用于被关联token和node之间??
         $this->addExtension(new Twig_Extension_Core()); // 核心组件
         $this->addExtension(new Twig_Extension_Escaper($options['autoescape']));
         $this->addExtension(new Twig_Extension_Optimizer($options['optimizations']));
@@ -334,11 +335,11 @@ class Twig_Environment
      *
      * @param string|Twig_TemplateWrapper|Twig_Template $name The template name
      *
-     * @throws Twig_Error_Loader  When the template cannot be found
-     * @throws Twig_Error_Runtime When a previously generated cache is corrupted
-     * @throws Twig_Error_Syntax  When an error occurred during compilation
-     *
      * @return Twig_TemplateWrapper
+     * @throws Twig_Error
+     * @throws Twig_Error_Loader When the template cannot be found
+     * @throws Twig_Error_Runtime When a previously generated cache is corrupted
+     * @throws Twig_Error_Syntax When an error occurred during compilation
      */
     public function load($name)
     {
@@ -404,6 +405,7 @@ class Twig_Environment
                 $source = $this->getLoader()->getSourceContext($name);
 
                 // 调用模板编译成php源码
+                // 重要的入口
                 $content = $this->compileSource($source);
                 $this->cache->write($key, $content);
                 $this->cache->load($key);
@@ -455,6 +457,7 @@ class Twig_Environment
      *
      * @return Twig_Template A template instance representing the given template name
      *
+     * @throws Twig_Error
      * @throws Twig_Error_Loader When the template cannot be found
      * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax When an error occurred during compilation
@@ -491,6 +494,7 @@ class Twig_Environment
      * @param int    $time The last modification time of the cached template
      *
      * @return bool true if the template is fresh, false otherwise
+     * @throws Twig_Error_Loader
      */
     public function isTemplateFresh($name, $time)
     {
@@ -507,7 +511,9 @@ class Twig_Environment
      *
      * @return Twig_Template|Twig_TemplateWrapper
      *
+     * @throws Twig_Error
      * @throws Twig_Error_Loader When none of the templates can be found
+     * @throws Twig_Error_Runtime
      * @throws Twig_Error_Syntax When an error occurred during compilation
      */
     public function resolveTemplate($names)
@@ -565,8 +571,10 @@ class Twig_Environment
             $this->lexer = new Twig_Lexer($this);
         }
 
+        $tokenStream = $this->lexer->tokenize($source);
+
         // 传入到词法分析器，开始分析源码
-        return $this->lexer->tokenize($source);
+        return $tokenStream;
     }
 
     public function setParser(Twig_Parser $parser)
@@ -577,6 +585,7 @@ class Twig_Environment
     /**
      * Converts a token stream to a node tree.
      *
+     * @param Twig_TokenStream $stream
      * @return Twig_Node_Module
      *
      * @throws Twig_Error_Syntax When the token stream is syntactically or semantically wrong
@@ -588,7 +597,10 @@ class Twig_Environment
             $this->parser = new Twig_Parser($this);
         }
 
-        return $this->parser->parse($stream);
+        // 解析出所有节点模块
+        $nodeModule = $this->parser->parse($stream);
+
+        return $nodeModule;
     }
 
     public function setCompiler(Twig_Compiler $compiler)
@@ -682,6 +694,7 @@ class Twig_Environment
      * @param string $class The extension class name
      *
      * @return bool Whether the extension is registered or not
+     * @throws ReflectionException
      */
     public function hasExtension($class)
     {
@@ -702,6 +715,8 @@ class Twig_Environment
      * @param string $class The extension class name
      *
      * @return Twig_ExtensionInterface
+     * @throws ReflectionException
+     * @throws Twig_Error_Runtime
      */
     public function getExtension($class)
     {

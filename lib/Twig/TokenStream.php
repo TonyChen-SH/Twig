@@ -17,8 +17,14 @@
  */
 final class Twig_TokenStream
 {
+    /**
+     * @var array 存的都是Twig_Token
+     */
     private $tokens;
     private $current = 0;
+    /**
+     * @var Twig_Source
+     */
     private $source;
 
     /**
@@ -60,6 +66,8 @@ final class Twig_TokenStream
     /**
      * Tests a token, sets the pointer to the next one and returns it or throws a syntax error.
      *
+     * @param      $primary
+     * @param null $secondary
      * @return Twig_Token|null The next token if the condition is true, null otherwise
      * @throws Twig_Error_Syntax
      */

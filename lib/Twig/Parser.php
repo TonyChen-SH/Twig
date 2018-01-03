@@ -11,13 +11,14 @@
  */
 
 /**
+ * 节点解析，很重要的一个类
  * Default parser implementation.
  *
  * @author Fabien Potencier <fabien@symfony.com>
  */
 class Twig_Parser
 {
-    private $stack = array();
+    private $stack             = [];
     private $stream;
     private $parent;
     private $handlers;
@@ -29,7 +30,7 @@ class Twig_Parser
     private $env;
     private $importedSymbols;
     private $traits;
-    private $embeddedTemplates = array();
+    private $embeddedTemplates = [];
 
     public function __construct(Twig_Environment $env)
     {
@@ -47,10 +48,12 @@ class Twig_Parser
         unset($vars['stack'], $vars['env'], $vars['handlers'], $vars['visitors'], $vars['expressionParser'], $vars['reservedMacroNames']);
         $this->stack[] = $vars;
 
-        // tag handlers
-        if (null === $this->handlers) {
-            $this->handlers = array();
-            foreach ($this->env->getTokenParsers() as $handler) {
+        // tag handlers 每个节点标签
+        if (null === $this->handlers)
+        {
+            $this->handlers = [];
+            foreach ($this->env->getTokenParsers() as $handler)
+            {
                 $handler->setParser($this);
 
                 $this->handlers[$handler->getTag()] = $handler;
@@ -58,49 +61,59 @@ class Twig_Parser
         }
 
         // node visitors
-        if (null === $this->visitors) {
+        // 节点访问器
+        if (null === $this->visitors)
+        {
             $this->visitors = $this->env->getNodeVisitors();
         }
 
-        if (null === $this->expressionParser) {
+        // 表达式
+        if (null === $this->expressionParser)
+        {
             $this->expressionParser = new Twig_ExpressionParser($this, $this->env);
         }
 
-        $this->stream = $stream;
-        $this->parent = null;
-        $this->blocks = array();
-        $this->macros = array();
-        $this->traits = array();
-        $this->blockStack = array();
-        $this->importedSymbols = array(array());
-        $this->embeddedTemplates = array();
+        $this->stream            = $stream;
+        $this->parent            = null;
+        $this->blocks            = [];
+        $this->macros            = [];
+        $this->traits            = [];
+        $this->blockStack        = [];
+        $this->importedSymbols   = [[]];
+        $this->embeddedTemplates = [];
 
-        try {
+        try
+        {
             $body = $this->subparse($test, $dropNeedle);
 
-            if (null !== $this->parent && null === $body = $this->filterBodyNodes($body)) {
+            if (null !== $this->parent && null === $body = $this->filterBodyNodes($body))
+            {
                 $body = new Twig_Node();
             }
-        } catch (Twig_Error_Syntax $e) {
-            if (!$e->getSourceContext()) {
+        } catch (Twig_Error_Syntax $e)
+        {
+            if (!$e->getSourceContext())
+            {
                 $e->setSourceContext($this->stream->getSourceContext());
             }
 
-            if (!$e->getTemplateLine()) {
+            if (!$e->getTemplateLine())
+            {
                 $e->setTemplateLine($this->stream->getCurrent()->getLine());
             }
 
             throw $e;
         }
 
-        $node = new Twig_Node_Module(new Twig_Node_Body(array($body)), $this->parent, new Twig_Node($this->blocks), new Twig_Node($this->macros), new Twig_Node($this->traits), $this->embeddedTemplates, $stream->getSourceContext());
+        $node = new Twig_Node_Module(new Twig_Node_Body([$body]), $this->parent, new Twig_Node($this->blocks), new Twig_Node($this->macros), new Twig_Node($this->traits), $this->embeddedTemplates, $stream->getSourceContext());
 
         $traverser = new Twig_NodeTraverser($this->env, $this->visitors);
 
         $node = $traverser->traverse($node);
 
         // restore previous stack so previous parse() call can resume working
-        foreach (array_pop($this->stack) as $key => $val) {
+        foreach (array_pop($this->stack) as $key => $val)
+        {
             $this->$key = $val;
         }
 
@@ -110,17 +123,19 @@ class Twig_Parser
     public function subparse($test, $dropNeedle = false)
     {
         $lineno = $this->getCurrentToken()->getLine();
-        $rv = array();
-        while (!$this->stream->isEOF()) {
-            switch ($this->getCurrentToken()->getType()) {
+        $rv     = [];
+        while (!$this->stream->isEOF())
+        {
+            switch ($this->getCurrentToken()->getType())
+            {
                 case Twig_Token::TEXT_TYPE:
                     $token = $this->stream->next();
-                    $rv[] = new Twig_Node_Text($token->getValue(), $token->getLine());
+                    $rv[]  = new Twig_Node_Text($token->getValue(), $token->getLine());
                     break;
 
                 case Twig_Token::VAR_START_TYPE:
                     $token = $this->stream->next();
-                    $expr = $this->expressionParser->parseExpression();
+                    $expr  = $this->expressionParser->parseExpression();
                     $this->stream->expect(Twig_Token::VAR_END_TYPE);
                     $rv[] = new Twig_Node_Print($expr, $token->getLine());
                     break;
@@ -129,30 +144,38 @@ class Twig_Parser
                     $this->stream->next();
                     $token = $this->getCurrentToken();
 
-                    if ($token->getType() !== Twig_Token::NAME_TYPE) {
+                    if ($token->getType() !== Twig_Token::NAME_TYPE)
+                    {
                         throw new Twig_Error_Syntax('A block must start with a tag name.', $token->getLine(), $this->stream->getSourceContext());
                     }
 
-                    if (null !== $test && $test($token)) {
-                        if ($dropNeedle) {
+                    if (null !== $test && $test($token))
+                    {
+                        if ($dropNeedle)
+                        {
                             $this->stream->next();
                         }
 
-                        if (1 === count($rv)) {
+                        if (1 === count($rv))
+                        {
                             return $rv[0];
                         }
 
-                        return new Twig_Node($rv, array(), $lineno);
+                        return new Twig_Node($rv, [], $lineno);
                     }
 
-                    if (!isset($this->handlers[$token->getValue()])) {
-                        if (null !== $test) {
+                    if (!isset($this->handlers[$token->getValue()]))
+                    {
+                        if (null !== $test)
+                        {
                             $e = new Twig_Error_Syntax(sprintf('Unexpected "%s" tag', $token->getValue()), $token->getLine(), $this->stream->getSourceContext());
 
-                            if (is_array($test) && isset($test[0]) && $test[0] instanceof Twig_TokenParserInterface) {
+                            if (is_array($test) && isset($test[0]) && $test[0] instanceof Twig_TokenParserInterface)
+                            {
                                 $e->appendMessage(sprintf(' (expecting closing tag for the "%s" tag defined near line %s).', $test[0]->getTag(), $lineno));
                             }
-                        } else {
+                        } else
+                        {
                             $e = new Twig_Error_Syntax(sprintf('Unknown "%s" tag.', $token->getValue()), $token->getLine(), $this->stream->getSourceContext());
                             $e->addSuggestions($token->getValue(), array_keys($this->env->getTags()));
                         }
@@ -163,8 +186,9 @@ class Twig_Parser
                     $this->stream->next();
 
                     $subparser = $this->handlers[$token->getValue()];
-                    $node = $subparser->parse($token);
-                    if (null !== $node) {
+                    $node      = $subparser->parse($token);
+                    if (null !== $node)
+                    {
                         $rv[] = $node;
                     }
                     break;
@@ -174,11 +198,12 @@ class Twig_Parser
             }
         }
 
-        if (1 === count($rv)) {
+        if (1 === count($rv))
+        {
             return $rv[0];
         }
 
-        return new Twig_Node($rv, array(), $lineno);
+        return new Twig_Node($rv, [], $lineno);
     }
 
     public function getBlockStack()
@@ -213,7 +238,7 @@ class Twig_Parser
 
     public function setBlock($name, Twig_Node_Block $value)
     {
-        $this->blocks[$name] = new Twig_Node_Body(array($value), array(), $value->getTemplateLine());
+        $this->blocks[$name] = new Twig_Node_Body([$value], [], $value->getTemplateLine());
     }
 
     public function hasMacro($name)
@@ -250,13 +275,15 @@ class Twig_Parser
 
     public function addImportedSymbol($type, $alias, $name = null, Twig_Node_Expression $node = null)
     {
-        $this->importedSymbols[0][$type][$alias] = array('name' => $name, 'node' => $node);
+        $this->importedSymbols[0][$type][$alias] = ['name' => $name, 'node' => $node];
     }
 
     public function getImportedSymbol($type, $alias)
     {
-        foreach ($this->importedSymbols as $functions) {
-            if (isset($functions[$type][$alias])) {
+        foreach ($this->importedSymbols as $functions)
+        {
+            if (isset($functions[$type][$alias]))
+            {
                 return $functions[$type][$alias];
             }
         }
@@ -269,7 +296,7 @@ class Twig_Parser
 
     public function pushLocalScope()
     {
-        array_unshift($this->importedSymbols, array());
+        array_unshift($this->importedSymbols, []);
     }
 
     public function popLocalScope()
@@ -318,8 +345,10 @@ class Twig_Parser
             ($node instanceof Twig_Node_Text && !ctype_space($node->getAttribute('data')))
             ||
             (!$node instanceof Twig_Node_Text && !$node instanceof Twig_Node_BlockReference && $node instanceof Twig_NodeOutputInterface)
-        ) {
-            if (false !== strpos((string) $node, chr(0xEF).chr(0xBB).chr(0xBF))) {
+        )
+        {
+            if (false !== strpos((string)$node, chr(0xEF) . chr(0xBB) . chr(0xBF)))
+            {
                 throw new Twig_Error_Syntax('A template that extends another one cannot start with a byte order mark (BOM); it must be removed.', $node->getTemplateLine(), $this->stream->getSourceContext());
             }
 
@@ -327,16 +356,20 @@ class Twig_Parser
         }
 
         // bypass nodes that will "capture" the output
-        if ($node instanceof Twig_NodeCaptureInterface) {
+        if ($node instanceof Twig_NodeCaptureInterface)
+        {
             return $node;
         }
 
-        if ($node instanceof Twig_NodeOutputInterface) {
+        if ($node instanceof Twig_NodeOutputInterface)
+        {
             return;
         }
 
-        foreach ($node as $k => $n) {
-            if (null !== $n && null === $this->filterBodyNodes($n)) {
+        foreach ($node as $k => $n)
+        {
+            if (null !== $n && null === $this->filterBodyNodes($n))
+            {
                 $node->removeNode($k);
             }
         }

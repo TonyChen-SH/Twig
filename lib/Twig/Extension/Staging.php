@@ -10,6 +10,7 @@
  */
 
 /**
+ * 存储类
  * Used by Twig_Environment as a staging area.
  *
  * @author Fabien Potencier <fabien@symfony.com>
@@ -18,15 +19,16 @@
  */
 final class Twig_Extension_Staging extends Twig_Extension
 {
-    private $functions = array();
-    private $filters = array();
-    private $visitors = array();
-    private $tokenParsers = array();
-    private $tests = array();
+    private $functions    = [];
+    private $filters      = [];
+    private $visitors     = [];
+    private $tokenParsers = [];
+    private $tests        = [];
 
     public function addFunction(Twig_Function $function)
     {
-        if (isset($this->functions[$function->getName()])) {
+        if (isset($this->functions[$function->getName()]))
+        {
             throw new LogicException(sprintf('Function "%s" is already registered.', $function->getName()));
         }
 
@@ -40,7 +42,8 @@ final class Twig_Extension_Staging extends Twig_Extension
 
     public function addFilter(Twig_Filter $filter)
     {
-        if (isset($this->filters[$filter->getName()])) {
+        if (isset($this->filters[$filter->getName()]))
+        {
             throw new LogicException(sprintf('Filter "%s" is already registered.', $filter->getName()));
         }
 
@@ -64,7 +67,8 @@ final class Twig_Extension_Staging extends Twig_Extension
 
     public function addTokenParser(Twig_TokenParserInterface $parser)
     {
-        if (isset($this->tokenParsers[$parser->getTag()])) {
+        if (isset($this->tokenParsers[$parser->getTag()]))
+        {
             throw new LogicException(sprintf('Tag "%s" is already registered.', $parser->getTag()));
         }
 
@@ -78,7 +82,8 @@ final class Twig_Extension_Staging extends Twig_Extension
 
     public function addTest(Twig_Test $test)
     {
-        if (isset($this->tests[$test->getName()])) {
+        if (isset($this->tests[$test->getName()]))
+        {
             throw new LogicException(sprintf('Test "%s" is already registered.', $test->getTag()));
         }
 

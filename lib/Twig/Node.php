@@ -12,6 +12,7 @@
 
 /**
  * 代表AST语法树上的一个节点基类
+ * 基类
  * Represents a node in the AST.
  *
  * @author Fabien Potencier <fabien@symfony.com>

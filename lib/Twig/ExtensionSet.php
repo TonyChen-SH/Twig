@@ -1,7 +1,7 @@
 <?php
 
 /*
- * 集合
+ * 扩展的集合管理
  * This file is part of Twig.
  *
  * (c) Fabien Potencier
@@ -40,6 +40,7 @@ final class Twig_ExtensionSet
 
     /**
      * Initializes the runtime environment.
+     * @param Twig_Environment $env
      */
     public function initRuntime(Twig_Environment $env)
     {
@@ -464,12 +465,14 @@ final class Twig_ExtensionSet
 
     private function initExtensions()
     {
-        $this->parsers         = [];
-        $this->filters         = [];
-        $this->functions       = [];
-        $this->tests           = [];
-        $this->visitors        = [];
-        $this->unaryOperators  = [];
+        $this->parsers   = [];
+        $this->filters   = [];
+        $this->functions = [];
+        $this->tests     = [];
+        $this->visitors  = [];
+        // 一元操作符
+        $this->unaryOperators = [];
+        // 二元操作符
         $this->binaryOperators = [];
 
         foreach ($this->extensions as $extension)
@@ -518,14 +521,16 @@ final class Twig_ExtensionSet
             $this->visitors[] = $visitor;
         }
 
-        // operators
+        // operators 操作符
         if ($operators = $extension->getOperators())
         {
+            // 读取一元操作符?
             if (!is_array($operators))
             {
                 throw new InvalidArgumentException(sprintf('"%s::getOperators()" must return an array with operators, got "%s".', get_class($extension), is_object($operators) ? get_class($operators) : gettype($operators) . (is_resource($operators) ? '' : '#' . $operators)));
             }
 
+            // 二元操作符?
             if (2 !== count($operators))
             {
                 throw new InvalidArgumentException(sprintf('"%s::getOperators()" must return an array of 2 elements, got %d.', get_class($extension), count($operators)));

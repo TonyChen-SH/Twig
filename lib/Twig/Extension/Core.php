@@ -118,9 +118,9 @@ final class Twig_Extension_Core extends Twig_Extension
         return [
             new Twig_TokenParser_For(), // for语法
             new Twig_TokenParser_If(),  // if语法
-            new Twig_TokenParser_Extends(),
-            new Twig_TokenParser_Include(),
-            new Twig_TokenParser_Block(),
+            new Twig_TokenParser_Extends(), // 继承
+            new Twig_TokenParser_Include(), //包含
+            new Twig_TokenParser_Block(), // 块
             new Twig_TokenParser_Use(),
             new Twig_TokenParser_Filter(),
             new Twig_TokenParser_Macro(),
@@ -491,6 +491,7 @@ function twig_replace_filter($str, $from)
  * @param string    $method The method to use for rounding
  *
  * @return int|float The rounded number
+ * @throws Twig_Error_Runtime
  */
 function twig_round($value, $precision = 0, $method = 'common')
 {
@@ -575,6 +576,7 @@ function twig_urlencode_filter($url)
  * @param array|Traversable $arr2 An array
  *
  * @return array The merged array
+ * @throws Twig_Error_Runtime
  */
 function twig_array_merge($arr1, $arr2)
 {
@@ -960,6 +962,7 @@ function twig_trim_filter($string, $characterMask = null, $side = 'both')
  * @param bool             $autoescape Whether the function is called by the auto-escaping feature (true) or by the developer (false)
  *
  * @return string
+ * @throws Twig_Error_Runtime
  */
 function twig_escape_filter(Twig_Environment $env, $string, $strategy = 'html', $charset = null, $autoescape = false)
 {
